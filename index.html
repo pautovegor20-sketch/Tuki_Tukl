@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Онлайн Крестики-Нолики | Два игрока</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, 'Poppins', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(2px);
+            border-radius: 64px;
+            padding: 24px 20px 32px 20px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+        }
+
+        .game-panel {
+            background: #1e2f3c;
+            border-radius: 48px;
+            padding: 24px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0 0 12px 0;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFD966, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+
+        .status-area {
+            background: #0b1620;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin-bottom: 28px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: #f0f3f8;
+            box-shadow: inset 0 1px 4px #00000055, 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            background: #0f1a1f;
+            padding: 18px;
+            border-radius: 48px;
+            margin-bottom: 28px;
+            box-shadow: inset 0 0 0 2px #2e4a5e, 0 12px 20px rgba(0,0,0,0.4);
+        }
+
+        .cell {
+            aspect-ratio: 1 / 1;
+            background: #233b47;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 4px 8px black;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 6px 0 #0b1419;
+            font-family: 'Segoe UI', 'Poppins', monospace;
+        }
+
+        .cell:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #0b1419;
+        }
+
+        .cell.X {
+            color: #6ee7ff;
+            text-shadow: 0 0 8px #00a6c4;
+        }
+
+        .cell.O {
+            color: #ffb347;
+            text-shadow: 0 0 8px #ff8c00;
+        }
+
+        .cell.winner-highlight {
+            background: #3f7552;
+            box-shadow: 0 0 0 3px gold, 0 6px 0 #1f442e;
+            transform: scale(0.98);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #2c4e62;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 10px 28px;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s ease;
+            box-shadow: 0 5px 0 #10232e;
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #10232e;
+        }
+
+        .reset-btn {
+            background: #ff8c42;
+            color: #1e2f2c;
+            box-shadow: 0 5px 0 #b45116;
+        }
+
+        .copy-btn {
+            background: #2f6b47;
+        }
+
+        .connection-info {
+            margin-top: 20px;
+            background: #071018b3;
+            border-radius: 40px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: #bbd4f0;
+            word-break: break-all;
+        }
+
+        .room-url {
+            background: #010a0f;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin: 8px 4px;
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        a {
+            color: #ffb347;
+            text-decoration: none;
+        }
+
+        .status-badge {
+            background: #00000066;
+            border-radius: 30px;
+            padding: 4px 12px;
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 520px) {
+            .board {
+                gap: 10px;
+                padding: 12px;
+            }
+            .cell {
+                font-size: 3rem;
+                border-radius: 20px;
+            }
+            .game-panel {
+                padding: 16px;
+            }
+            .status-area {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="game-panel">
+        <h1>⚡ КРЕСТИКИ-НОЛИКИ ⚡</h1>
+        <div class="status-area" id="statusMsg">🔄 Подключение...</div>
+        <div class="board" id="board">
+            <!-- 9 ячеек генерируются js -->
+        </div>
+        <div class="controls">
+            <button id="resetBtn" class="reset-btn">🔄 Новая игра</button>
+            <button id="copyLinkBtn" class="copy-btn">🔗 Скопировать ссылку</button>
+        </div>
+        <div class="connection-info" id="infoPanel">
+            <div id="roomInfo">📡 Создание комнаты...</div>
+            <div id="playersCount" class="status-badge">👥 Игроков: 0/2</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------- Multiplayer Tic-Tac-Toe (WebSocket over wss: peerjs signalling через бесплатный сервер? 
+    // Но для простоты и реальной онлайн игры используем WebRTC + DataChannel через PeerJS (бесплатный публичный сервер)
+    // Данный код использует PeerJS (CDN) и создает P2P соединение между двумя игроками.
+    // Никаких серверов бекенда не требуется! Работает прямо в браузере.
+    // Игрок, который открывает страницу первым, создает комнату (Peer ID).
+    // Второй игрок может подключиться, перейдя по сгенерированной ссылке с ID.
+    // Все ходы синхронизируются в реальном времени.
+    
+    // ----- Глобальные переменные -----
+    let currentPlayer = null;      // 'X' или 'O' (кто Я)
+    let isMyTurn = false;          // мой ли сейчас ход
+    let gameActive = true;
+    let boardState = ['', '', '', '', '', '', '', '', ''];
+    let winnerInfo = null;          // { winner: 'X'/'O'/'tie', line: [...] }
+    
+    // PeerJS объекты
+    let peer = null;
+    let conn = null;                // активное соединение с другим игроком
+    let myPeerId = null;
+    let roomId = null;              // ID который нужно передать сопернику
+    let isHost = false;             // хост создает комнату, ждет подключения
+    
+    // DOM элементы
+    const boardDiv = document.getElementById('board');
+    const statusDiv = document.getElementById('statusMsg');
+    const resetBtn = document.getElementById('resetBtn');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const roomInfoDiv = document.getElementById('roomInfo');
+    const playersCountSpan = document.getElementById('playersCount');
+    
+    // ----- Вспомогательные функции UI -----
+    function renderBoard() {
+        const cells = document.querySelectorAll('.cell');
+        for (let i = 0; i < cells.length; i++) {
+            const symbol = boardState[i];
+            cells[i].innerText = symbol;
+            cells[i].classList.remove('X', 'O', 'winner-highlight');
+            if (symbol === 'X') cells[i].classList.add('X');
+            if (symbol === 'O') cells[i].classList.add('O');
+        }
+        // подсветка победных клеток
+        if (winnerInfo && winnerInfo.line) {
+            const line = winnerInfo.line;
+            for (let idx of line) {
+                const cell = cells[idx];
+                if (cell) cell.classList.add('winner-highlight');
+            }
+        }
+    }
+    
+    function updateStatusText() {
+        if (!gameActive) {
+            if (winnerInfo && winnerInfo.winner === 'tie') {
+                statusDiv.innerHTML = `🤝 НИЧЬЯ! 🤝`;
+            } else if (winnerInfo && winnerInfo.winner) {
+                const winnerSym = winnerInfo.winner;
+                statusDiv.innerHTML = `🏆 ИГРОК ${winnerSym} ПОБЕДИЛ! 🏆`;
+            } else {
+                statusDiv.innerHTML = `⚡ Игра окончена ⚡`;
+            }
+            return;
+        }
+        if (!currentPlayer) {
+            statusDiv.innerHTML = `⌛ Ожидание соперника...`;
+            return;
+        }
+        if (isMyTurn) {
+            statusDiv.innerHTML = `🎯 Ваш ход (${currentPlayer}) • Нажми на клетку`;
+        } else {
+            statusDiv.innerHTML = `⏳ Ход соперника (${currentPlayer === 'X' ? 'O' : 'X'}) • Ожидание...`;
+        }
+    }
+    
+    function updateConnectionInfo() {
+        if (!peer) return;
+        if (isHost && !conn) {
+            roomInfoDiv.innerHTML = `✨ Вы создали комнату. Поделитесь ссылкой: <br><span class="room-url" id="roomUrlSpan">${window.location.origin}${window.location.pathname}?room=${myPeerId}</span>`;
+            playersCountSpan.innerHTML = `👥 Игроков: 1/2 (ожидание)`;
+        } else if (!isHost && !conn) {
+            roomInfoDiv.innerHTML = `🔌 Подключение к комнате ${roomId || '...'}...`;
+            playersCountSpan.innerHTML = `👥 Игроков: соединяемся...`;
+        } else if (conn && conn.open) {
+            roomInfoDiv.innerHTML = `🔗 Соединение установлено! Игра активна.`;
+            playersCountSpan.innerHTML = `👥 Игроков: 2/2 • Играем`;
+        } else if (conn && !conn.open) {
+            roomInfoDiv.innerHTML = `⚠️ Соединение разорвано. Обновите страницу.`;
+        }
+        // обновить ссылку в dom после рендера
+        const span = document.getElementById('roomUrlSpan');
+        if (span && myPeerId) {
+            span.innerText = `${window.location.origin}${window.location.pathname}?room=${myPeerId}`;
+        }
+    }
+    
+    // проверка победы / ничьи, возвращает { winner, line } или null
+    function checkGameStatus(board) {
+        const winPatterns = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+        for (let pattern of winPatterns) {
+            const [a,b,c] = pattern;
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                return { winner: board[a], line: pattern };
+            }
+        }
+        if (board.every(cell => cell !== '')) {
+            return { winner: 'tie', line: null };
+        }
+        return null;
+    }
+    
+    function applyGameResult() {
+        const result = checkGameStatus(boardState);
+        if (result) {
+            gameActive = false;
+            winnerInfo = result;
+            renderBoard();
+            updateStatusText();
+            return true;
+        }
+        return false;
+    }
+    
+    // Отправка хода сопернику
+    function sendMove(index, symbol) {
+        if (conn && conn.open && gameActive) {
+            conn.send({
+                type: 'move',
+                index: index,
+                symbol: symbol,
+                board: boardState  // отправляем полное состояние для синхронизации (на всякий)
+            });
+        }
+    }
+    
+    // Обработка хода
+    function makeMove(index, playerSymbol) {
+        if (!gameActive) return false;
+        if (boardState[index] !== '') return false;
+        if (playerSymbol !== currentPlayer) return false;
+        if (!isMyTurn) return false;
+        
+        // выполняем ход
+        boardState[index] = playerSymbol;
+        renderBoard();
+        
+        const finished = applyGameResult();
+        if (!finished) {
+            // переключение хода
+            isMyTurn = false;
+            updateStatusText();
+            // отправить оппоненту
+            sendMove(index, playerSymbol);
+        } else {
+            // игра окончена, уведомляем соперника о завершении
+            if (conn && conn.open) {
+                conn.send({
+                    type: 'gameOver',
+                    winnerInfo: winnerInfo,
+                    board: boardState
+                });
+            }
+            updateStatusText();
+        }
+        return true;
+    }
+    
+    // Сброс игры локально и синхронизация
+    function resetGameLocally() {
+        boardState = ['', '', '', '', '', '', '', '', ''];
+        gameActive = true;
+        winnerInfo = null;
+        // Определяем кто ходит первым: обычно X всегда начинает, но после ресета, если игра активна, ход за X.
+        // В мультиплеере: у хоста X, у гостя O.
+        if (currentPlayer === 'X') {
+            isMyTurn = true;
+        } else {
+            isMyTurn = false;
+        }
+        renderBoard();
+        updateStatusText();
+    }
+    
+    function resetAndNotifyOpponent() {
+        if (!conn || !conn.open) {
+            // если нет соединения, просто локальный сброс
+            resetGameLocally();
+            return;
+        }
+        // отправить команду на сброс
+        conn.send({
+            type: 'reset',
+            newBoard: ['', '', '', '', '', '', '', '', ''],
+            startingTurn: 'X'   // всегда X начинает после ресета
+        });
+        // локально сбрасываем
+        resetGameLocally();
+    }
+    
+    // Обработка входящих сообщений от пира
+    function handleData(data) {
+        if (!data) return;
+        if (data.type === 'move') {
+            // получен ход от оппонента
+            if (!gameActive) return;
+            const { index, symbol } = data;
+            // валидация: чей сейчас ход? У оппонента символ противоположный currentPlayer
+            const expectedOpponentSymbol = (currentPlayer === 'X') ? 'O' : 'X';
+            if (symbol !== expectedOpponentSymbol) return;
+            if (boardState[index] !== '') return;
+            // применяем ход соперника
+            boardState[index] = symbol;
+            renderBoard();
+            const finished = applyGameResult();
+            if (!finished) {
+                // передаем ход мне
+                isMyTurn = true;
+                updateStatusText();
+            } else {
+                updateStatusText();
+            }
+        } 
+        else if (data.type === 'reset') {
+            // соперник запросил ресет
+            boardState = data.newBoard ? [...data.newBoard] : ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            winnerInfo = null;
+            // установка очередности: первый ход у X
+            if (currentPlayer === 'X') {
+                isMyTurn = true;
+            } else {
+                isMyTurn = (data.startingTurn === 'X' ? false : true); // но для гостя O обычно второй
+                // если стартовый X, то гость (O) не ходит первым
+                if (data.startingTurn === 'X' && currentPlayer === 'O') isMyTurn = false;
+                if (data.startingTurn === 'O' && currentPlayer === 'O') isMyTurn = true;
+            }
+            // стандарт: X начинает, поэтому хост X ходит первым, гость O ждёт
+            if (currentPlayer === 'X') isMyTurn = true;
+            if (currentPlayer === 'O') isMyTurn = false;
+            renderBoard();
+            updateStatusText();
+        }
+        else if (data.type === 'gameOver') {
+            // соперник сообщает что игра окончена (синхронизация)
+            if (!gameActive) return;
+            gameActive = false;
+            winnerInfo = data.winnerInfo;
+            if (data.board) boardState = [...data.board];
+            renderBoard();
+            updateStatusText();
+        }
+        else if (data.type === 'initGame') {
+            // при подключении, хост отправляет информацию о символах
+            // хост = X, клиент = O
+            if (!isHost) {
+                currentPlayer = 'O';
+                isMyTurn = false;   // X ходит первым
+                gameActive = true;
+                winnerInfo = null;
+                boardState = ['', '', '', '', '', '', '', '', ''];
+                renderBoard();
+                updateStatusText();
+                updateConnectionInfo();
+            }
+        }
+        else if (data.type === 'syncRequest') {
+            // если гость запросил полное состояние (при переподключении) отправим текущее
+            if (isHost && conn && conn.open) {
+                conn.send({
+                    type: 'syncFull',
+                    board: boardState,
+                    currentTurn: isMyTurn ? currentPlayer : (currentPlayer === 'X' ? 'O' : 'X'),
+                    gameActive: gameActive,
+                    winnerInfo: winnerInfo,
+                    hostSymbol: currentPlayer
+                });
+            }
+        }
+        else if (data.type === 'syncFull') {
+            // синхронизация полного состояния от хоста
+            if (!isHost) {
+                boardState = data.board ? [...data.board] : ['', '', '', '', '', '', '', '', ''];
+                gameActive = data.gameActive;
+                winnerInfo = data.winnerInfo || null;
+                // определить чей ход
+                if (gameActive && !winnerInfo) {
+                    if (data.currentTurn === currentPlayer) isMyTurn = true;
+                    else isMyTurn = false;
+                } else {
+                    isMyTurn = false;
+                }
+                renderBoard();
+                updateStatusText();
+            }
+        }
+    }
+    
+    // Настройка соединения
+    function initPeer(isHostMode, connectToId = null) {
+        peer = new Peer();  // использует бесплатный сервер PeerJS Cloud
+        
+        peer.on('open', (id) => {
+            myPeerId = id;
+            if (isHostMode) {
+                isHost = true;
+                currentPlayer = 'X';
+                isMyTurn = true;
+                gameActive = true;
+                boardState = ['', '', '', '', '', '', '', '', ''];
+                winnerInfo = null;
+                renderBoard();
+                updateStatusText();
+                updateConnectionInfo();
+                // ждём подключения
+                peer.on('connection', (incomingConn) => {
+                    conn = incomingConn;
+                    conn.on('open', () => {
+                        updateConnectionInfo();
+                        // Отправляем гостю инициализацию
+                        conn.send({ type: 'initGame', hostSymbol: 'X' });
+                        // синхронизируем состояние поля на случай если хост уже играл (но только что ресет)
+                        conn.send({
+                            type: 'syncFull',
+                            board: boardState,
+                            currentTurn: isMyTurn ? currentPlayer : (currentPlayer === 'X' ? 'O' : 'X'),
+                            gameActive: gameActive,
+                            winnerInfo: winnerInfo,
+                            hostSymbol: currentPlayer
+                        });
+                        updateStatusText();
+                    });
+                    conn.on('data', handleData);
+                    conn.on('close', () => {
+                        statusDiv.innerHTML = "❌ Соединение потеряно! Обновите страницу для новой игры.";
+                        playersCountSpan.innerHTML = `👥 Игроков: 1/2 (отключен)`;
+                        gameActive = false;
+                    });
+                });
+            } 
+            else if (connectToId) {
+                isHost = false;
+                currentPlayer = 'O';
+                isMyTurn = false;
+                gameActive = true;
+                boardState = ['', '', '', '', '', '', '', '', ''];
+                winnerInfo = null;
+                renderBoard();
+                updateStatusText();
+                conn = peer.connect(connectToId);
+                conn.on('open', () => {
+                    updateConnectionInfo();
+                    // запросить синхронизацию у хоста
+                    conn.send({ type: 'syncRequest' });
+                    updateStatusText();
+                });
+                conn.on('data', handleData);
+                conn.on('close', () => {
+                    statusDiv.innerHTML = "❌ Соединение потеряно! Перезагрузите страницу.";
+                    gameActive = false;
+                    updateStatusText();
+                });
+            }
+            updateConnectionInfo();
+        });
+        
+        peer.on('error', (err) => {
+            console.error(err);
+            statusDiv.innerHTML = `⚠️ Ошибка соединения: ${err.type}. Обновите страницу или попробуйте другой браузер.`;
+        });
+    }
+    
+    // Получение параметра room из URL
+    function getRoomFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('room');
+    }
+    
+    // Сброс игры по кнопке
+    resetBtn.addEventListener('click', () => {
+        if (!conn || !conn.open) {
+            resetGameLocally();
+        } else {
+            resetAndNotifyOpponent();
+        }
+    });
+    
+    // Копирование ссылки
+    copyLinkBtn.addEventListener('click', () => {
+        let linkToCopy = '';
+        if (isHost && myPeerId) {
+            linkToCopy = `${window.location.origin}${window.location.pathname}?room=${myPeerId}`;
+        } else if (roomId) {
+            linkToCopy = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+        } else {
+            linkToCopy = window.location.href;
+        }
+        navigator.clipboard.writeText(linkToCopy).then(() => {
+            const originalText = copyLinkBtn.innerText;
+            copyLinkBtn.innerText = '✅ Скопировано!';
+            setTimeout(() => copyLinkBtn.innerText = originalText, 1500);
+        }).catch(() => alert("Нажмите Ctrl+C для копирования ссылки"));
+    });
+    
+    // Обработка кликов по полю (делегирование)
+    boardDiv.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const index = parseInt(cell.getAttribute('data-index'));
+        if (isNaN(index)) return;
+        if (!gameActive) return;
+        if (!currentPlayer) { statusDiv.innerHTML = "Ожидание подключения..."; return; }
+        if (!isMyTurn) { statusDiv.innerHTML = "Сейчас ход соперника!"; return; }
+        makeMove(index, currentPlayer);
+    });
+    
+    // Создание игрового поля
+    function buildBoardUI() {
+        boardDiv.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.setAttribute('data-index', i);
+            cell.innerText = '';
+            boardDiv.appendChild(cell);
+        }
+        renderBoard();
+    }
+    
+    // Инициализация: определяем режим (хост или подключение)
+    function startGame() {
+        buildBoardUI();
+        const existingRoom = getRoomFromURL();
+        if (existingRoom && existingRoom.length > 0) {
+            // режим подключения к существующей комнате
+            roomId = existingRoom;
+            initPeer(false, existingRoom);
+        } else {
+            // режим хоста
+            initPeer(true, null);
+        }
+    }
+    
+    startGame();
+</script>
+<!-- PeerJS библиотека для WebRTC соединений -->
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</body>
+</html>
